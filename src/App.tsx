@@ -49,7 +49,7 @@ export default function App() {
   const [search,setSearch] = useState('');
   const [history,setHistory] = useState<WorkHistoryEntry[]>(()=>getWorkHistory());
   const [toasts,setToasts] = useState<ToastItem[]>([]);
-  const [darkMode,setDarkMode] = useState<boolean>(()=>{ try{return localStorage.getItem('ropdf_theme')==='dark';}catch{return false;} });
+  const [darkMode,setDarkMode] = useState<boolean>(()=>{ try{return localStorage.getItem('ropdf_theme')!=='light';}catch{return true;} });
 
   useEffect(()=>{ const root=document.documentElement; root.classList.toggle('dark',darkMode); try{localStorage.setItem('ropdf_theme',darkMode?'dark':'light');}catch{} },[darkMode]);
   useEffect(()=>{ const refresh=()=>setHistory(getWorkHistory()); window.addEventListener('ropdf-history',refresh); window.addEventListener('storage',refresh); return()=>{window.removeEventListener('ropdf-history',refresh);window.removeEventListener('storage',refresh);}; },[]);
