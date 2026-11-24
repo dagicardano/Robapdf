@@ -9,10 +9,10 @@ jobs:
         with:
           node-version: '20'
       - run: |
-          npm install
+          npm install --legacy-peer-deps
           npm run build
-          npm install @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "MyApp" "com.example.myapp" --web-dir=dist
+          npm install --legacy-peer-deps @capacitor/core @capacitor/cli @capacitor/android
+          npx cap init "Robapdf" "com.robel.robapdf" --web-dir=dist
           npx cap add android
           npx cap sync android
       - uses: actions/setup-java@v4
