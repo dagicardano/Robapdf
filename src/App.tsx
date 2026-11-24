@@ -68,7 +68,7 @@ export default function App() {
   return <div className="ropdf-shell">
     <header className="ropdf-header">
       <div className="brand-lockup">
-        <div className="brand-mark"><FileText size={22}/><span>R</span></div>
+        <img className="brand-mark-image" src="/ropdf-icon.svg" alt="RoPDF logo" />
         <div><div className="brand-name">RoPDF</div><div className="brand-tagline">Your private PDF workspace</div></div>
       </div>
       <div className="header-actions">

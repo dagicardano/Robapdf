@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+<defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#08b8e9"/><stop offset=".5" stop-color="#4350ce"/><stop offset="1" stop-color="#d52eaa"/></linearGradient><linearGradient id="r" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffb33f"/><stop offset=".35" stop-color="#f04b78"/><stop offset=".7" stop-color="#168de5"/><stop offset="1" stop-color="#a92fc2"/></linearGradient></defs>
+<rect width="512" height="512" rx="112" fill="#f8fbff"/><circle cx="256" cy="256" r="231" fill="none" stroke="url(#bg)" stroke-width="18"/>
+<path d="M135 92 H320 Q360 92 381 127 L405 164 V357 Q405 402 359 412 H135 Z" fill="url(#bg)"/>
+<path d="M342 95 V143 Q342 170 371 170 H401" fill="#ffb34a"/>
+<path d="M184 359 V172 Q184 132 226 132 H274 Q344 132 344 204 Q344 270 275 270 H207" fill="none" stroke="url(#r)" stroke-width="47" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M208 268 Q178 295 178 343" fill="none" stroke="#17449e" stroke-width="43" stroke-linecap="round"/>
+<path d="M210 269 Q276 270 310 308 Q336 337 373 337" fill="none" stroke="#e746a4" stroke-width="27" stroke-linecap="round"/>
+<rect x="294" y="306" width="99" height="59" rx="17" fill="#6634b9"/><text x="343" y="345" text-anchor="middle" font-family="Arial,sans-serif" font-size="30" font-weight="800" fill="#fff">PDF</text>
+</svg>
