@@ -143,7 +143,7 @@ export function sanitizePdfText(input: string): string {
   return out;
 }
 
-import { registerPlugin } from '@capacitor/core';
+import { Capacitor, registerPlugin } from '@capacitor/core';
 
 interface RoPDFSavePlugin {
   savePdf(options: { base64: string; fileName: string }): Promise<{ uri: string; savedTo: string }>;
@@ -207,7 +207,7 @@ export async function downloadPdfBytesAsync(bytes: Uint8Array, filename: string)
 
   try {
     const nativeSave = RoPDFSave;
-    if (nativeSave) {
+    if (Capacitor.isNativePlatform()) {
       const buffer = await blob.arrayBuffer();
       const bytesView = new Uint8Array(buffer);
       let binary = '';
