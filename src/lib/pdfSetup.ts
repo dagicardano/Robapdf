@@ -194,6 +194,40 @@ export function downloadPdfBytes(bytes: Uint8Array, filename: string): void {
   downloadBlob(new Blob([copy.buffer], { type: 'application/pdf' }), safeName);
 }
 
+/**
+ * Awaitable PDF export for workflows that must not report success until the
+ * Android save dialog / Downloads write has completed.
+ */
+export async function downloadPdfBytesAsync(bytes: Uint8Array, filename: string): Promise<void> {
+  const safeName = filename.toLowerCase().endsWith('.pdf') ? filename : `${filename}.pdf`;
+  const copy = new Uint8Array(bytes.byteLength);
+  copy.set(bytes);
+  const blob = new Blob([copy.buffer], { type: 'application/pdf' });
+  if (blob.size === 0) throw new Error('The generated PDF is empty.');
+
+  try {
+    const nativeSave = RoPDFSave;
+    if (nativeSave) {
+      const buffer = await blob.arrayBuffer();
+      const bytesView = new Uint8Array(buffer);
+      let binary = '';
+      const chunkSize = 0x8000;
+      for (let i = 0; i < bytesView.length; i += chunkSize) {
+        binary += String.fromCharCode(...bytesView.subarray(i, i + chunkSize));
+      }
+      await nativeSave.savePdf({ base64: btoa(binary), fileName: safeName });
+      recordWorkHistory(safeName, blob.size);
+      return;
+    }
+  } catch (error) {
+    if (error instanceof Error && /cancel/i.test(error.message)) throw error;
+    throw new Error(error instanceof Error ? error.message : 'Could not save the PDF on this device.');
+  }
+
+  browserDownload(blob, safeName);
+}
+
+
 export function formatFileSize(bytes: number): string {
   if (bytes < 1024) return `${bytes} B`;
   if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
