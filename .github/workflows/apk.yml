@@ -7,12 +7,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: '20'
+          node-version: '22'
       - run: |
           npm install --legacy-peer-deps
           npm run build
           npm install --legacy-peer-deps @capacitor/core @capacitor/cli @capacitor/android
-          npx cap init "Robapdf" "com.robel.robapdf" --web-dir=dist
+          printf '{\n  "appId": "com.robel.robapdf",\n  "appName": "Robapdf",\n  "webDir": "dist"\n}\n' > capacitor.config.json
           npx cap add android
           npx cap sync android
       - uses: actions/setup-java@v4
