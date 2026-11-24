@@ -1,5 +1,7 @@
 name: Build APK
 on: [push, workflow_dispatch]
+permissions:
+  contents: read
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -8,7 +10,8 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: '22'
-      - run: |
+      - name: Build web assets and prepare Android
+        run: |
           npm install --legacy-peer-deps
           npm run build
           npm install --legacy-peer-deps @capacitor/core @capacitor/cli @capacitor/android
@@ -18,10 +21,14 @@ jobs:
       - uses: actions/setup-java@v4
         with:
           distribution: 'temurin'
-          java-version: '17'
-      - run: |
-          cd android && chmod +x gradlew && ./gradlew assembleDebug
+          java-version: '21'
+      - name: Build Android APK
+        run: |
+          cd android
+          chmod +x gradlew
+          ./gradlew assembleDebug
       - uses: actions/upload-artifact@v4
         with:
-          name: app-apk
+          name: robapdf-android-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
+          if-no-files-found: error
