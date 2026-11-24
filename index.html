@@ -1,54 +1,11 @@
 <!doctype html>
-<!--
-  =============================================================================
-  OfflinePDF Studio — 100% Offline Client-Side PDF Toolkit
-  =============================================================================
-  OFFLINE / VENDORING README:
-  All JavaScript libraries, WebAssembly engines, OCR language models, and UI
-  fonts are vendored locally inside this build with ZERO external CDN links,
-  remote APIs, or telemetry.
-
-  Local Asset & Library Inventory:
-  1. ./libs/pdf.worker.min.mjs
-     - PDF.js Web Worker (vendored from pdfjs-dist/build/pdf.worker.min.mjs)
-  2. ./libs/tesseract/worker.min.js
-     - Tesseract.js OCR Web Worker (vendored from tesseract.js/dist/worker.min.js)
-  3. ./libs/tesseract/tesseract-core*.{js,wasm}
-     - Tesseract WASM OCR engine (vendored from tesseract.js-core)
-  4. ./libs/tesseract/lang/eng.traineddata.gz
-     - English OCR trained model (vendored from @tesseract.js-data/eng)
-  5. Bundled JS Libraries (compiled directly into local app bundle):
-     - pdf-lib (PDF creation, editing, merging, splitting, page scaling)
-     - pdfjs-dist (Client-side PDF canvas rendering & thumbnail generation)
-     - jszip (Client-side ZIP extraction for .pptx/.docx & multi-PDF export)
-     - mammoth (Client-side .docx to HTML + embedded image conversion)
-     - tesseract.js (Client-side OCR orchestration)
-     - @fontsource/plus-jakarta-sans & @fontsource/jetbrains-mono (Local fonts)
-
-  To run 100% offline from source:
-    1. npm install
-    2. npm run build
-    3. Serve ./dist via any local static server (e.g. npx serve ./dist)
-  =============================================================================
--->
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>OfflinePDF Studio — 100% Offline PDF Toolkit</title>
-    <meta
-      name="description"
-      content="100% offline client-side PDF toolkit for creating, merging, splitting, editing, converting, resizing, and scanning documents with zero internet required."
-    />
-    <meta property="og:title" content="OfflinePDF Studio — 100% Offline PDF Toolkit" />
-    <meta
-      property="og:description"
-      content="100% offline client-side PDF toolkit for creating, merging, splitting, editing, converting, resizing, and scanning documents with zero internet required."
-    />
-    <meta property="og:type" content="website" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta name="theme-color" content="#292e68" />
+    <meta name="description" content="RoPDF - a private, offline-ready PDF workspace for creating, converting, editing and scanning documents." />
+    <title>RoPDF — Private PDF Workspace</title>
   </head>
-  <body>
-    <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+  <body><div id="root"></div><script type="module" src="/src/main.tsx"></script></body>
 </html>

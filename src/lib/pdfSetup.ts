@@ -1,4 +1,5 @@
 import * as pdfjsLib from 'pdfjs-dist';
+import { recordWorkHistory } from './workHistory';
 import { rgb } from 'pdf-lib';
 
 /**
@@ -149,6 +150,7 @@ export function downloadBlob(blob: Blob, filename: string): void {
   a.download = filename;
   document.body.appendChild(a);
   a.click();
+  recordWorkHistory(filename, blob.size);
   document.body.removeChild(a);
   setTimeout(() => URL.revokeObjectURL(url), 4000);
 }
