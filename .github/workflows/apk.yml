@@ -190,8 +190,8 @@ jobs:
           p = Path("android/app/src/main/java/com/robel/ropdf/MainActivity.kt")
           s = p.read_text()
           if "RoPDFSavePlugin" not in s:
-              s = s.replace("import com.getcapacitor.BridgeActivity", "import com.getcapacitor.BridgeActivity\\nimport com.robel.ropdf.RoPDFSavePlugin")
-              s = s.replace("class MainActivity : BridgeActivity()", "class MainActivity : BridgeActivity() {\\n    override fun onCreate(savedInstanceState: android.os.Bundle?) {\\n        registerPlugin(RoPDFSavePlugin::class.java)\\n        super.onCreate(savedInstanceState)\\n    }\\n}")
+              s = s.replace("import com.getcapacitor.BridgeActivity", "import com.getcapacitor.BridgeActivity\nimport com.robel.ropdf.RoPDFSavePlugin")
+              s = s.replace("class MainActivity : BridgeActivity()", "class MainActivity : BridgeActivity() {\n    override fun onCreate(savedInstanceState: android.os.Bundle?) {\n        registerPlugin(RoPDFSavePlugin::class.java)\n        super.onCreate(savedInstanceState)\n    }\n}")
               p.write_text(s)
           PY
 
