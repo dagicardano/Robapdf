@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { DropZone } from '../components/DropZone';
 import { ProgressBar } from '../components/ProgressBar';
-import { downloadPdfBytes, imageFileToPngOrJpgBytes } from '../lib/pdfSetup';
+import { downloadPdfBytesAsync, imageFileToPngOrJpgBytes } from '../lib/pdfSetup';
 import {
   QuadCorners,
   ScanFilter,
@@ -311,8 +311,8 @@ export const DocumentScanner: React.FC<ToolProps> = ({ onNotify }) => {
 
       const out = await pdfDoc.save();
       setProgress(100);
-      downloadPdfBytes(out, 'scanned-document.pdf');
-      onNotify('success', `Exported ${pagesToExport.length}-page scanned PDF.`);
+      await downloadPdfBytesAsync(out, 'scanned-document.pdf');
+      onNotify('success', `Saved ${pagesToExport.length}-page scanned PDF to your selected location.`);
     } catch (err) {
       onNotify('error', err instanceof Error ? err.message : 'PDF export failed.');
     } finally {
