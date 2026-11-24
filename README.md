@@ -1,11 +1,28 @@
-<div align="center">
+# OfflinePDF Studio
 
-<img width="1200" height="475" alt="GHBanner" src="https://github.com/user-attachments/assets/0aa67016-6eaf-458a-adb2-6e31a0763ed6" />
+**100% Offline — No data leaves your device.**
 
-  <h1>Built with AI Studio</h2>
+OfflinePDF Studio is a complete client-side PDF workstation built to operate without an internet connection, external CDNs, remote APIs, or telemetry.
 
-  <p>The fastest path from prompt to production with Gemini.</p>
+## Vendored Local Libraries (`/public/libs/` & `node_modules`)
 
-  <a href="https://aistudio.google.com/apps">Start building</a>
+All runtime dependencies are bundled locally:
 
-</div>
+| Library / Asset | Local Path / Package | Purpose |
+|---|---|---|
+| `pdf-lib` | Bundled via npm (`pdf-lib`) | PDF creation, merging, splitting, annotations, page scaling |
+| `pdfjs-dist` | Bundled + `/public/libs/pdf.worker.min.mjs` | High-DPI client-side PDF rendering & thumbnail previews |
+| `jszip` | Bundled via npm (`jszip`) | Unzipping `.pptx` archives & bundling multi-file PDF exports |
+| `mammoth` | Bundled via npm (`mammoth`) | Parsing `.docx` documents & embedded images to HTML |
+| `tesseract.js` | Bundled + `/public/libs/tesseract/` | Local WebAssembly OCR (`worker.min.js`, `tesseract-core*.wasm`) |
+| `@tesseract.js-data/eng` | `/public/libs/tesseract/lang/eng.traineddata.gz` | Offline English OCR trained language data |
+| Fonts | `@fontsource/plus-jakarta-sans`, `@fontsource/jetbrains-mono` | Locally bundled UI & monospace fonts |
+
+## Building & Downloading the Offline `.zip` Package
+
+```bash
+npm install
+npm run package:zip
+```
+
+This compiles a self-contained single-file `index.html` (all JS, CSS, and fonts inlined via `vite-plugin-singlefile`) and packages it alongside `./libs/` and `README.md` into `OfflinePDF-Studio.zip`. You can also click **Download Offline .zip** directly inside the app sidebar.

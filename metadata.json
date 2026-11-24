@@ -1,0 +1,6 @@
+{
+  "name": "OfflinePDF Studio",
+  "description": "100% offline client-side PDF toolkit for creating, merging, splitting, editing, converting, resizing, and scanning documents with zero internet required.",
+  "requestFramePermissions": ["camera"],
+  "majorCapabilities": []
+}
