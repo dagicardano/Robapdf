@@ -185,24 +185,20 @@ jobs:
               }
           }
           KOTLIN
-          python3 - <<'PY'
-          from pathlib import Path
-          candidates = list(Path("android/app/src/main").rglob("MainActivity.kt")) + list(Path("android/app/src/main").rglob("MainActivity.java"))
-          if not candidates:
-              raise SystemExit("Capacitor MainActivity source file was not generated")
-          p = candidates[0]
-          source = p.read_text()
-          if "RoPDFSavePlugin" not in source:
-              if p.suffix == ".kt":
-                  source = source.replace("import com.getcapacitor.BridgeActivity", "import com.getcapacitor.BridgeActivity\\nimport com.robel.ropdf.RoPDFSavePlugin")
-                  source = source.replace("class MainActivity : BridgeActivity()", "class MainActivity : BridgeActivity() {\\n    override fun onCreate(savedInstanceState: android.os.Bundle?) {\\n        registerPlugin(RoPDFSavePlugin::class.java)\\n        super.onCreate(savedInstanceState)\\n    }\\n}")
-              else:
-                  source = source.replace("import com.getcapacitor.BridgeActivity;", "import com.getcapacitor.BridgeActivity;\\nimport com.robel.ropdf.RoPDFSavePlugin;")
-                  source = source.replace("public class MainActivity extends BridgeActivity {", "public class MainActivity extends BridgeActivity {\\n    @Override\\n    public void onCreate(android.os.Bundle savedInstanceState) {\\n        registerPlugin(RoPDFSavePlugin.class);\\n        super.onCreate(savedInstanceState);\\n    }")
-              if "registerPlugin" not in source:
-                  raise SystemExit("Could not register RoPDFSavePlugin in " + str(p))
-              p.write_text(source)
-          PY
+          cat > android/app/src/main/java/com/robel/ropdf/MainActivity.java <<'JAVA'
+          package com.robel.ropdf;
+
+          import android.os.Bundle;
+          import com.getcapacitor.BridgeActivity;
+
+          public class MainActivity extends BridgeActivity {
+              @Override
+              public void onCreate(Bundle savedInstanceState) {
+                  registerPlugin(RoPDFSavePlugin.class);
+                  super.onCreate(savedInstanceState);
+              }
+          }
+          JAVA
 
       - name: Set up Java
         uses: actions/setup-java@v5
