@@ -237,7 +237,7 @@ export const DocumentScanner: React.FC<ToolProps> = ({ onNotify }) => {
       filter,
       maxOutputDim: 1800,
     });
-    const url = highRes.toDataURL('image/png');
+    const url = highRes.toDataURL('image/jpeg', 0.9);
     setQueue((prev) => [...prev, { id: `scan-${Date.now()}`, dataUrl: url, ocrText: ocrText || undefined }]);
     onNotify('success', `Added scanned page #${queue.length + 1} to document queue.`);
   };
