@@ -366,8 +366,8 @@ export async function imageFileToPngOrJpgBytes(
   ctx.restore();
 
   const isJpeg =
-    typeof fileOrDataUrl !== 'string' &&
-    (fileOrDataUrl.type === 'image/jpeg' || /\.jpe?g$/i.test(fileOrDataUrl.name));
+    (typeof fileOrDataUrl === 'string' && /^data:image\/jpe?g/i.test(fileOrDataUrl)) ||
+    (typeof fileOrDataUrl !== 'string' && (fileOrDataUrl.type === 'image/jpeg' || /\.jpe?g$/i.test(fileOrDataUrl.name)));
 
   const mime = isJpeg ? 'image/jpeg' : 'image/png';
   const blob = await new Promise<Blob>((resolve, reject) => {
