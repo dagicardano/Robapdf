@@ -143,22 +143,17 @@ export function sanitizePdfText(input: string): string {
   return out;
 }
 
-declare global {
-  interface Window {
-    Capacitor?: {
-      Plugins?: {
-        RoPDFSave?: {
-          savePdf(options: { base64: string; fileName: string }): Promise<{ uri: string; savedTo: string }>;
-        };
-      };
-    };
-  }
+import { registerPlugin } from '@capacitor/core';
+
+interface RoPDFSavePlugin {
+  savePdf(options: { base64: string; fileName: string }): Promise<{ uri: string; savedTo: string }>;
 }
+const RoPDFSave = registerPlugin<RoPDFSavePlugin>('RoPDFSave');
 
 /** Save through Android's native Downloads / folder picker when running in the APK. */
 export function downloadBlob(blob: Blob, filename: string): void {
   const safeName = filename.toLowerCase().endsWith('.pdf') ? filename : `${filename}.pdf`;
-  const nativeSave = window.Capacitor?.Plugins?.RoPDFSave;
+  const nativeSave = RoPDFSave;
   if (nativeSave && blob.type === 'application/pdf') {
     void blob.arrayBuffer().then(async (buffer) => {
       const bytes = new Uint8Array(buffer);
