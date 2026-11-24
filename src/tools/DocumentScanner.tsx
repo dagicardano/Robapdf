@@ -38,6 +38,7 @@ export const DocumentScanner: React.FC<ToolProps> = ({ onNotify }) => {
   const [cameraActive, setCameraActive] = useState(false);
   const [stream, setStream] = useState<MediaStream | null>(null);
   const videoRef = useRef<HTMLVideoElement>(null);
+  const cameraInputRef = useRef<HTMLInputElement>(null);
 
   const [sourceDataUrl, setSourceDataUrl] = useState<string | null>(null);
   const [sourceImg, setSourceImg] = useState<HTMLImageElement | null>(null);
@@ -72,7 +73,8 @@ export const DocumentScanner: React.FC<ToolProps> = ({ onNotify }) => {
 
   const startCamera = async () => {
     if (!navigator.mediaDevices?.getUserMedia) {
-      onNotify('error', 'Camera API is unavailable in this browser context. Use photo upload instead.');
+      onNotify('info', 'Opening your phone camera…');
+      cameraInputRef.current?.click();
       return;
     }
     try {
@@ -87,7 +89,8 @@ export const DocumentScanner: React.FC<ToolProps> = ({ onNotify }) => {
         }
       }, 60);
     } catch {
-      onNotify('error', 'Camera permission denied or no camera found. You can still upload document photos.');
+      onNotify('info', 'Live camera access is unavailable. Opening your phone camera instead…');
+      cameraInputRef.current?.click();
     }
   };
 
@@ -322,6 +325,17 @@ export const DocumentScanner: React.FC<ToolProps> = ({ onNotify }) => {
 
   return (
     <div className="space-y-5">
+      <input
+        ref={cameraInputRef}
+        type="file"
+        accept="image/*"
+        capture="environment"
+        className="hidden"
+        onChange={(e) => {
+          if (e.target.files?.length) handlePhotoUpload(Array.from(e.target.files));
+          e.target.value = '';
+        }}
+      />
       {/* Capture Source Bar */}
       <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <DropZone
