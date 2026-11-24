@@ -169,8 +169,13 @@ export function processScannedImage(
     maxOutputDim?: number;
   }
 ): HTMLCanvasElement {
-  const srcW = sourceImg.naturalWidth;
-  const srcH = sourceImg.naturalHeight;
+  // Limit source pixel reads on mid-range phones. 2400 px is ample for
+  // crisp A4 scans while avoiding huge full-resolution ImageData allocations.
+  const rawW = sourceImg.naturalWidth;
+  const rawH = sourceImg.naturalHeight;
+  const sourceScale = Math.min(1, 2400 / Math.max(rawW, rawH));
+  const srcW = Math.max(1, Math.round(rawW * sourceScale));
+  const srcH = Math.max(1, Math.round(rawH * sourceScale));
 
   const p0: [number, number] = [corners[0].x * srcW, corners[0].y * srcH];
   const p1: [number, number] = [corners[1].x * srcW, corners[1].y * srcH];
@@ -195,7 +200,7 @@ export function processScannedImage(
   srcCanvas.width = srcW;
   srcCanvas.height = srcH;
   const srcCtx = srcCanvas.getContext('2d')!;
-  srcCtx.drawImage(sourceImg, 0, 0);
+  srcCtx.drawImage(sourceImg, 0, 0, srcW, srcH);
   const srcData = srcCtx.getImageData(0, 0, srcW, srcH).data;
 
   // Perspective warp into warpedCanvas
