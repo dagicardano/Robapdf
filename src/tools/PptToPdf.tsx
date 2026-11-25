@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Download, Presentation } from 'lucide-react';
 import { DropZone } from '../components/DropZone';
 import { ProgressBar } from '../components/ProgressBar';
-import { downloadPdfBytesAsync } from '../lib/pdfSetup';
+import { downloadPdfBytes } from '../lib/pdfSetup';
 import { ParsedPptxSlide, exportPptxSlidesToPdf, parsePptxFile } from '../lib/pptxParser';
 
 interface ToolProps {
@@ -44,7 +44,7 @@ export const PptToPdf: React.FC<ToolProps> = ({ onNotify }) => {
     setProgress(0);
     try {
       const bytes = await exportPptxSlidesToPdf(slides, setProgress);
-      await downloadPdfBytesAsync(bytes, fileName || 'presentation.pdf');
+      downloadPdfBytes(bytes, fileName || 'presentation.pdf');
       onNotify('success', `Exported ${slides.length} slide(s) to PDF.`);
     } catch (err) {
       onNotify('error', err instanceof Error ? err.message : 'Failed to export PPTX to PDF.');

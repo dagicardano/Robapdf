@@ -335,8 +335,8 @@ export async function imageFileToPngOrJpgBytes(
 ): Promise<{ bytes: Uint8Array; format: 'png' | 'jpg'; width: number; height: number }> {
   // JPEGs from camera scans and direct uploads are already embeddable: skip costly canvas re-encoding.
   if (rotationDeg === 0) {
-    const isJpegFile = typeof fileOrDataUrl !== 'string' && (fileOrDataUrl.type === 'image/jpeg' || /\\.jpe?g$/i.test(fileOrDataUrl.name));
-    const isJpegUrl = typeof fileOrDataUrl === 'string' && /^data:image\\/jpeg;base64,/i.test(fileOrDataUrl);
+    const isJpegFile = typeof fileOrDataUrl !== 'string' && (fileOrDataUrl.type === 'image/jpeg' || fileOrDataUrl.name.toLowerCase().endsWith('.jpg') || fileOrDataUrl.name.toLowerCase().endsWith('.jpeg'));
+    const isJpegUrl = typeof fileOrDataUrl === 'string' && fileOrDataUrl.toLowerCase().startsWith('data:image/jpeg;base64,');
     if (isJpegFile || isJpegUrl) {
       const bytes = isJpegFile ? new Uint8Array(await fileOrDataUrl.arrayBuffer()) : Uint8Array.from(atob((fileOrDataUrl as string).split(',')[1]), (ch) => ch.charCodeAt(0));
       const src = typeof fileOrDataUrl === 'string' ? fileOrDataUrl : URL.createObjectURL(fileOrDataUrl);
