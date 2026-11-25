@@ -8,7 +8,7 @@ import {
   Orientation,
   PAGE_PRESETS_MM,
   PagePreset,
-  downloadPdfBytes,
+  downloadPdfBytesAsync,
   mmToPt,
   resolvePageSizePt,
 } from '../lib/pdfSetup';
@@ -71,7 +71,7 @@ export const DocxToPdf: React.FC<ToolProps> = ({ onNotify }) => {
         baseFontSizePt: 11.5,
         onProgress: setProgress,
       });
-      downloadPdfBytes(bytes, outputName || 'word-document.pdf');
+      await downloadPdfBytesAsync(bytes, outputName || 'word-document.pdf');
       onNotify('success', `Converted DOCX into ${outputName}.`);
     } catch (err) {
       onNotify('error', err instanceof Error ? err.message : 'DOCX to PDF export failed.');

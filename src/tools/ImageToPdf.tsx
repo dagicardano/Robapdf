@@ -7,7 +7,7 @@ import {
   Orientation,
   PAGE_PRESETS_MM,
   PagePreset,
-  downloadPdfBytes,
+  downloadPdfBytesAsync,
   formatFileSize,
   imageFileToPngOrJpgBytes,
   mmToPt,
@@ -108,7 +108,7 @@ export const ImageToPdf: React.FC<ToolProps> = ({ onNotify }) => {
 
       const outBytes = await pdfDoc.save();
       setProgress(100);
-      downloadPdfBytes(outBytes, outputName || 'images-bundle.pdf');
+      await downloadPdfBytesAsync(outBytes, outputName || 'images-bundle.pdf');
       onNotify('success', `Converted ${images.length} image(s) into PDF.`);
     } catch (err) {
       onNotify('error', err instanceof Error ? err.message : 'Image conversion failed.');

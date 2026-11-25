@@ -333,6 +333,18 @@ export async function imageFileToPngOrJpgBytes(
   fileOrDataUrl: File | string,
   rotationDeg = 0
 ): Promise<{ bytes: Uint8Array; format: 'png' | 'jpg'; width: number; height: number }> {
+  // JPEGs from camera scans and direct uploads are already embeddable: skip costly canvas re-encoding.
+  if (rotationDeg === 0) {
+    const isJpegFile = typeof fileOrDataUrl !== 'string' && (fileOrDataUrl.type === 'image/jpeg' || /\\.jpe?g$/i.test(fileOrDataUrl.name));
+    const isJpegUrl = typeof fileOrDataUrl === 'string' && /^data:image\\/jpeg;base64,/i.test(fileOrDataUrl);
+    if (isJpegFile || isJpegUrl) {
+      const bytes = isJpegFile ? new Uint8Array(await fileOrDataUrl.arrayBuffer()) : Uint8Array.from(atob((fileOrDataUrl as string).split(',')[1]), (ch) => ch.charCodeAt(0));
+      const src = typeof fileOrDataUrl === 'string' ? fileOrDataUrl : URL.createObjectURL(fileOrDataUrl);
+      const img = await new Promise<HTMLImageElement>((resolve, reject) => { const el = new Image(); el.onload = () => resolve(el); el.onerror = () => reject(new Error('Unsupported or corrupted JPEG')); el.src = src; });
+      if (typeof fileOrDataUrl !== 'string') URL.revokeObjectURL(src);
+      return { bytes, format: 'jpg', width: img.naturalWidth, height: img.naturalHeight };
+    }
+  }
   const dataUrl =
     typeof fileOrDataUrl === 'string'
       ? fileOrDataUrl
