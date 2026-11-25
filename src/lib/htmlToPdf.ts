@@ -693,5 +693,5 @@ export async function renderHtmlToPdfBytes(html: string, opts: HtmlToPdfOptions)
   }
 
   opts.onProgress?.(100);
-  return await pdfDoc.save();
+  return await pdfDoc.save({ useObjectStreams: true });
 }
