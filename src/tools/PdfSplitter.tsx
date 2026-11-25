@@ -58,7 +58,7 @@ export const PdfSplitter: React.FC<ToolProps> = ({ onNotify }) => {
     try {
       const ab = await file.arrayBuffer();
       const { numPages, previews: thumbs } = await renderPdfThumbnails(ab, {
-        scale: 0.35,
+        scale: 0.24,
         onProgress: (cur, tot) => setProgress(Math.round((cur / tot) * 100)),
       });
       setFileName(file.name.replace(/\.pdf$/i, ''));
@@ -123,7 +123,7 @@ export const PdfSplitter: React.FC<ToolProps> = ({ onNotify }) => {
           groups[0].map((p) => p - 1)
         );
         copied.forEach((p) => out.addPage(p));
-        const bytes = await out.save();
+        const bytes = await out.save({ useObjectStreams: true });
         setProgress(100);
         downloadPdfBytes(bytes, `${fileName || 'split'}-extracted.pdf`);
         onNotify('success', `Exported ${groups[0].length} page(s) as PDF.`);
@@ -137,7 +137,7 @@ export const PdfSplitter: React.FC<ToolProps> = ({ onNotify }) => {
             grp.map((p) => p - 1)
           );
           copied.forEach((p) => out.addPage(p));
-          const bytes = await out.save();
+          const bytes = await out.save({ useObjectStreams: true });
           const label = grp.length === 1 ? `p${grp[0]}` : `p${grp[0]}-p${grp[grp.length - 1]}`;
           zip.file(`${fileName || 'split'}-${label}.pdf`, bytes);
           setProgress(Math.round(((gIdx + 1) / groups.length) * 90));
