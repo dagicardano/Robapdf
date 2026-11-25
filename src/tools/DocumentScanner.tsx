@@ -64,11 +64,19 @@ export const DocumentScanner: React.FC<ToolProps> = ({ onNotify }) => {
 
   const cropCanvasRef = useRef<HTMLCanvasElement>(null);
 
-  // Clean up camera stream on unmount
+  // Attach the stream after the camera view has mounted, and always stop tracks on exit.
   useEffect(() => {
+    if (cameraActive && stream && videoRef.current) {
+      videoRef.current.srcObject = stream;
+      void videoRef.current.play().catch(() => undefined);
+    }
     return () => {
-      stream?.getTracks().forEach((t) => t.stop());
+      if (!cameraActive) stream?.getTracks().forEach((t) => t.stop());
     };
+  }, [cameraActive, stream]);
+
+  useEffect(() => () => {
+    stream?.getTracks().forEach((track) => track.stop());
   }, [stream]);
 
   const startCamera = async () => {
@@ -79,15 +87,11 @@ export const DocumentScanner: React.FC<ToolProps> = ({ onNotify }) => {
     }
     try {
       const media = await navigator.mediaDevices.getUserMedia({
-        video: { facingMode: 'environment', width: { ideal: 1920 }, height: { ideal: 1080 } },
+        video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 }, frameRate: { ideal: 30, max: 30 } },
       });
       setStream(media);
       setCameraActive(true);
-      setTimeout(() => {
-        if (videoRef.current) {
-          videoRef.current.srcObject = media;
-        }
-      }, 60);
+      // The effect above attaches the stream as soon as React mounts the video element.
     } catch {
       onNotify('info', 'Live camera access is unavailable. Opening your phone camera instead…');
       cameraInputRef.current?.click();
@@ -120,7 +124,7 @@ export const DocumentScanner: React.FC<ToolProps> = ({ onNotify }) => {
     c.width = video.videoWidth;
     c.height = video.videoHeight;
     c.getContext('2d')?.drawImage(video, 0, 0);
-    const dataUrl = c.toDataURL('image/png');
+    const dataUrl = c.toDataURL('image/jpeg', 0.9);
     stopCamera();
     loadSourceDataUrl(dataUrl);
     onNotify('success', 'Captured snapshot and auto-detected document edges.');
@@ -194,9 +198,9 @@ export const DocumentScanner: React.FC<ToolProps> = ({ onNotify }) => {
         rotateDeg,
         deskewDeg,
         filter,
-        maxOutputDim: 1100,
+        maxOutputDim: 900,
       });
-      setProcessedDataUrl(processed.toDataURL('image/png'));
+      setProcessedDataUrl(processed.toDataURL('image/jpeg', 0.82));
     }, 60);
     return () => clearTimeout(timer);
   }, [sourceImg, corners, rotateDeg, deskewDeg, filter]);
@@ -238,7 +242,7 @@ export const DocumentScanner: React.FC<ToolProps> = ({ onNotify }) => {
       rotateDeg,
       deskewDeg,
       filter,
-      maxOutputDim: 1800,
+      maxOutputDim: 1600,
     });
     const url = highRes.toDataURL('image/jpeg', 0.9);
     setQueue((prev) => [...prev, { id: `scan-${Date.now()}`, dataUrl: url, ocrText: ocrText || undefined }]);
@@ -312,7 +316,7 @@ export const DocumentScanner: React.FC<ToolProps> = ({ onNotify }) => {
         setProgress(Math.round(((i + 1) / pagesToExport.length) * 95));
       }
 
-      const out = await pdfDoc.save();
+      const out = await pdfDoc.save({ useObjectStreams: true });
       setProgress(100);
       await downloadPdfBytesAsync(out, 'scanned-document.pdf');
       onNotify('success', `Saved ${pagesToExport.length}-page scanned PDF to your selected location.`);
@@ -336,56 +340,49 @@ export const DocumentScanner: React.FC<ToolProps> = ({ onNotify }) => {
           e.target.value = '';
         }}
       />
-      {/* Capture Source Bar */}
-      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
-        <DropZone
-          accept="image/*"
-          onFiles={handlePhotoUpload}
-          title="Upload Document Photo"
-          subtitle="JPG, PNG, or WEBP photo — auto edge detection & perspective correction"
-          compact
-        />
-
-        <div className="flex flex-col items-center justify-center rounded-xl border border-slate-200 bg-white p-5 text-center dark:border-slate-800 dark:bg-slate-900">
-          {!cameraActive ? (
+      {/* Camera-first capture studio */}
+      <section className="scanner-studio">
+        <div className="scanner-studio-head">
+          <div>
+            <span className="scanner-eyebrow">ROPDF SCAN STUDIO</span>
+            <h2>Turn paper into a clean PDF</h2>
+            <p>Capture with your rear camera, auto-detect page edges, enhance, and export locally.</p>
+          </div>
+          <span className="scanner-local-badge"><span/> On-device</span>
+        </div>
+        <div className={`scanner-camera-stage ${cameraActive ? 'is-live' : ''}`}>
+          {cameraActive ? (
             <>
-              <button
-                type="button"
-                onClick={startCamera}
-                className="flex items-center gap-2 rounded-lg bg-slate-900 px-4 py-2.5 text-xs font-semibold text-white hover:bg-slate-800 dark:bg-slate-100 dark:text-slate-900 dark:hover:bg-slate-200"
-              >
-                <Camera className="h-4 w-4" />
-                <span>Open Device Camera</span>
-              </button>
-              <p className="mt-2 text-xs text-slate-500 dark:text-slate-400">
-                Uses local browser MediaDevices API (no upload or cloud stream)
-              </p>
+              <video ref={videoRef} autoPlay muted playsInline className="scanner-live-video" />
+              <div className="scanner-live-overlay" aria-hidden="true">
+                <span className="scanner-frame-corner top-left"/><span className="scanner-frame-corner top-right"/>
+                <span className="scanner-frame-corner bottom-left"/><span className="scanner-frame-corner bottom-right"/>
+                <span className="scanner-live-hint">Align the page inside the frame</span>
+              </div>
+              <div className="scanner-camera-controls">
+                <button type="button" className="scanner-capture-button" onClick={captureFromCamera} aria-label="Capture document">
+                  <span><Camera size={22}/></span> Capture page
+                </button>
+                <button type="button" className="scanner-close-button" onClick={stopCamera}><VideoOff size={16}/> Close camera</button>
+              </div>
             </>
           ) : (
-            <div className="w-full space-y-3">
-              <video ref={videoRef} autoPlay playsInline className="max-h-60 w-full rounded-lg bg-black object-contain" />
-              <div className="flex justify-center gap-2">
-                <button
-                  type="button"
-                  onClick={captureFromCamera}
-                  className="flex items-center gap-1.5 rounded-lg bg-blue-600 px-4 py-2 text-xs font-semibold text-white hover:bg-blue-700"
-                >
-                  <Camera className="h-3.5 w-3.5" />
-                  <span>Capture Page</span>
-                </button>
-                <button
-                  type="button"
-                  onClick={stopCamera}
-                  className="flex items-center gap-1.5 rounded-lg border border-slate-200 px-3 py-2 text-xs font-medium text-slate-700 hover:bg-slate-50 dark:border-slate-700 dark:text-slate-300 dark:hover:bg-slate-800"
-                >
-                  <VideoOff className="h-3.5 w-3.5" />
-                  <span>Close</span>
-                </button>
-              </div>
+            <div className="scanner-camera-empty">
+              <div className="scanner-camera-orb"><Camera size={34}/></div>
+              <h3>Ready when you are</h3>
+              <p>Use the live camera for a crisp scan, or choose an existing photo.</p>
+              <button type="button" className="scanner-start-button" onClick={startCamera}><Camera size={17}/> Open camera</button>
+              <small>Rear camera preferred · no cloud upload</small>
             </div>
           )}
         </div>
-      </div>
+        <div className="scanner-source-actions">
+          <DropZone accept="image/*" onFiles={handlePhotoUpload} title="Import a document photo" subtitle="JPG, PNG, WEBP · edge detection and perspective correction" compact />
+          <button type="button" className="scanner-import-button" onClick={() => cameraInputRef.current?.click()}>
+            <FileSearch size={17}/><span>Choose from device</span>
+          </button>
+        </div>
+      </section>
 
       {busy && <ProgressBar progress={progress} label={busyLabel} />}
 
