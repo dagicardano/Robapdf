@@ -32,3 +32,49 @@ button{cursor:pointer}
 @media(prefers-reduced-motion:reduce){*,*:before,*:after{transition:none!important;scroll-behavior:auto!important}}
 
 .brand-mark-image{width:46px;height:46px;display:block;object-fit:contain;border-radius:13px;filter:drop-shadow(0 5px 12px #4f46e555)}
+
+
+/* RoPDF refresh: cleaner surfaces, brighter accents and consistent contrast */
+.ropdf-header{background:rgba(13,20,38,.92);border-bottom:1px solid rgba(148,163,184,.16);box-shadow:0 8px 30px rgba(3,8,22,.14)}
+.ropdf-sidebar{background:rgba(15,23,42,.94);border-right:1px solid rgba(148,163,184,.15)}
+.ropdf-main{background:radial-gradient(ellipse at 15% 4%,rgba(79,70,229,.10),transparent 38%),radial-gradient(ellipse at 90% 40%,rgba(6,182,212,.07),transparent 35%)}
+.nav-link{color:#aab6cc}.nav-link:hover{background:rgba(99,102,241,.15);color:#dbeafe}.nav-active{background:linear-gradient(100deg,rgba(99,102,241,.24),rgba(14,165,233,.12));color:#dbeafe}
+.sidebar-divider{background:rgba(148,163,184,.16)}.sidebar-group-title{color:#8492aa}
+.tool-card{background:linear-gradient(145deg,rgba(30,41,59,.96),rgba(20,30,49,.96));border-color:rgba(148,163,184,.18);box-shadow:0 7px 20px rgba(2,8,23,.10)}
+.tool-card:hover{border-color:rgba(129,140,248,.65);box-shadow:0 14px 30px rgba(79,70,229,.14)}
+.tool-card-copy b{color:#f1f5f9}.tool-card-copy span{color:#aab7cc}
+.hero-panel{background:linear-gradient(115deg,#24265f 0%,#5148c9 48%,#087eaa 100%);box-shadow:0 18px 50px rgba(49,46,129,.24)}
+.feature-item{background:rgba(23,35,56,.92);border-color:rgba(148,163,184,.17)}.feature-item b{color:#e7edf8}
+.tool-workspace{background:rgba(20,30,49,.94);border-color:rgba(148,163,184,.19);box-shadow:0 12px 32px rgba(2,8,23,.12)}
+.page-subtitle{color:#aab6ca}
+.primary-button{background:linear-gradient(100deg,#fff,#e9eaff);box-shadow:0 5px 16px rgba(5,8,35,.16)}
+.tool-icon{box-shadow:inset 0 0 0 1px rgba(255,255,255,.6)}
+.scanner-studio{display:flex;flex-direction:column;gap:16px}
+.scanner-studio-head{display:flex;align-items:flex-start;justify-content:space-between;gap:18px;padding:4px 2px}
+.scanner-eyebrow{font-size:9px;font-weight:900;letter-spacing:1.8px;color:#67d4f2}
+.scanner-studio-head h2{font-size:clamp(20px,3vw,27px);letter-spacing:-1px;color:#f8fafc;margin:7px 0 5px}
+.scanner-studio-head p{font-size:11px;line-height:1.65;color:#aab8ce;margin:0;max-width:620px}
+.scanner-local-badge{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(52,211,153,.25);background:rgba(16,185,129,.10);color:#86efac;border-radius:99px;padding:8px 11px;font-size:10px;font-weight:800;white-space:nowrap}
+.scanner-local-badge span{width:7px;height:7px;border-radius:50%;background:#34d399;box-shadow:0 0 0 4px rgba(52,211,153,.12)}
+.scanner-camera-stage{position:relative;min-height:340px;border-radius:22px;overflow:hidden;background:radial-gradient(circle at 50% 35%,#26395c,#101827 72%);border:1px solid rgba(148,163,184,.2);box-shadow:inset 0 1px rgba(255,255,255,.05)}
+.scanner-camera-stage.is-live{min-height:clamp(360px,58vh,620px);background:#050a13}
+.scanner-live-video{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;background:#050a13}
+.scanner-live-overlay{position:absolute;inset:8% 9% 20%;pointer-events:none;border:1px solid rgba(255,255,255,.10);border-radius:12px}
+.scanner-frame-corner{position:absolute;width:34px;height:34px;border-color:#67e8f9;border-style:solid;filter:drop-shadow(0 0 8px rgba(34,211,238,.65))}
+.scanner-frame-corner.top-left{top:-2px;left:-2px;border-width:4px 0 0 4px;border-radius:9px 0 0}
+.scanner-frame-corner.top-right{top:-2px;right:-2px;border-width:4px 4px 0 0;border-radius:0 9px 0 0}
+.scanner-frame-corner.bottom-left{bottom:-2px;left:-2px;border-width:0 0 4px 4px;border-radius:0 0 0 9px}
+.scanner-frame-corner.bottom-right{bottom:-2px;right:-2px;border-width:0 4px 4px 0;border-radius:0 0 9px}
+.scanner-live-hint{position:absolute;top:calc(100% + 12px);left:50%;transform:translateX(-50%);font-size:10px;color:#dbeafe;background:rgba(5,10,20,.62);padding:7px 12px;border-radius:99px;white-space:nowrap}
+.scanner-camera-controls{position:absolute;left:0;right:0;bottom:0;display:flex;justify-content:center;align-items:center;gap:16px;padding:18px;background:linear-gradient(transparent,rgba(3,7,18,.88))}
+.scanner-capture-button{display:flex;align-items:center;gap:10px;border:0;border-radius:99px;background:#fff;color:#172033;padding:8px 22px 8px 9px;font-size:12px;font-weight:850;box-shadow:0 8px 24px rgba(0,0,0,.28)}
+.scanner-capture-button span{width:42px;height:42px;border-radius:50%;display:grid;place-items:center;background:linear-gradient(145deg,#22d3ee,#6366f1);color:white}
+.scanner-close-button,.scanner-import-button{display:inline-flex;align-items:center;justify-content:center;gap:8px;border:1px solid rgba(148,163,184,.25);border-radius:12px;background:rgba(15,23,42,.75);color:#e2e8f0;padding:11px 14px;font-size:11px;font-weight:750}
+.scanner-camera-empty{min-height:340px;display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:26px}
+.scanner-camera-orb{width:74px;height:74px;border-radius:24px;display:grid;place-items:center;color:#a5f3fc;background:linear-gradient(145deg,rgba(6,182,212,.2),rgba(99,102,241,.25));border:1px solid rgba(103,232,249,.24);box-shadow:0 0 50px rgba(34,211,238,.10)}
+.scanner-camera-empty h3{color:#f8fafc;font-size:16px;margin:16px 0 5px}.scanner-camera-empty p{max-width:420px;color:#aab8ce;font-size:11px;line-height:1.6;margin:0}
+.scanner-start-button{display:inline-flex;align-items:center;gap:8px;border:0;border-radius:12px;background:linear-gradient(100deg,#0891b2,#4f46e5);color:#fff;padding:12px 19px;margin-top:17px;font-size:11px;font-weight:850;box-shadow:0 8px 24px rgba(8,145,178,.25)}
+.scanner-camera-empty small{font-size:9px;color:#71829e;margin-top:12px}
+.scanner-source-actions{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:12px;align-items:stretch}.scanner-source-actions>div{min-width:0}
+.scanner-import-button{background:rgba(99,102,241,.12);color:#c7d2fe;border-color:rgba(129,140,248,.28);padding:12px 18px}
+@media(max-width:650px){.scanner-studio-head{flex-direction:column}.scanner-camera-stage{min-height:300px}.scanner-camera-empty{min-height:300px}.scanner-source-actions{grid-template-columns:1fr}.scanner-import-button{width:100%}.scanner-camera-controls{gap:8px;padding:12px}.scanner-close-button{padding:10px}.scanner-capture-button{padding-right:14px}}
