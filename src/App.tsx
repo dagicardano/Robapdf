@@ -2,7 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import {
   ArrowLeft, Camera, Clock3, CloudOff, Download, FileEdit, FileImage, FilePlus2,
   FileText, FileType, History, Layers, Maximize2, Menu, Moon, Presentation,
-  Scissors, Search, ShieldCheck, Sparkles, Sun, Trash2, Upload, X, LayoutGrid
+  Scissors, Search, ShieldCheck, Sparkles, Sun, Trash2, Upload, X, LayoutGrid, RotateCw
 } from 'lucide-react';
 import { OfflineGuideModal } from './components/OfflineGuideModal';
 import { ToastContainer, ToastItem } from './components/ToastContainer';
@@ -18,8 +18,9 @@ import { PdfMerger } from './tools/PdfMerger';
 import { PdfSplitter } from './tools/PdfSplitter';
 import { PptToPdf } from './tools/PptToPdf';
 import { TxtToPdf } from './tools/TxtToPdf';
+import { PdfRotator } from './tools/PdfRotator';
 
-type ToolId = 'creator' | 'merger' | 'splitter' | 'editor' | 'img2pdf' | 'ppt2pdf' | 'txt2pdf' | 'docx2pdf' | 'resizer' | 'scanner';
+type ToolId = 'creator' | 'merger' | 'splitter' | 'editor' | 'img2pdf' | 'ppt2pdf' | 'txt2pdf' | 'docx2pdf' | 'resizer' | 'scanner' | 'rotator';
 type Group = 'Create & Convert' | 'Organize & Edit' | 'Capture & Scan';
 interface ToolDefinition { id: ToolId; label: string; group: Group; description: string; icon: React.ElementType; accent: string; }
 const TOOLS: ToolDefinition[] = [
@@ -30,6 +31,7 @@ const TOOLS: ToolDefinition[] = [
   { id:'txt2pdf', label:'Text to PDF', group:'Create & Convert', description:'Create clean PDFs from TXT documents.', icon:FileType, accent:'cyan' },
   { id:'merger', label:'Merge PDFs', group:'Organize & Edit', description:'Combine documents and arrange their pages.', icon:Layers, accent:'indigo' },
   { id:'splitter', label:'Split PDF', group:'Organize & Edit', description:'Extract pages or split by page ranges.', icon:Scissors, accent:'amber' },
+  { id:'rotator', label:'Rotate PDF', group:'Organize & Edit', description:'Rotate selected pages or the entire document.', icon:RotateCw, accent:'cyan' },
   { id:'editor', label:'PDF Editor', group:'Organize & Edit', description:'Add text, drawings, highlights and signatures.', icon:FileEdit, accent:'emerald' },
   { id:'resizer', label:'Page Resizer', group:'Organize & Edit', description:'Resize pages and fit standard paper sizes.', icon:Maximize2, accent:'purple' },
   { id:'scanner', label:'Document Scanner', group:'Capture & Scan', description:'Scan with camera or import a photo; OCR runs offline.', icon:Camera, accent:'rose' },
@@ -58,7 +60,7 @@ export default function App() {
   const currentTool=TOOLS.find(t=>t.id===activeTool);
   const renderTool=()=>{if(!activeTool)return null; switch(activeTool){
     case'creator':return <PdfCreator onNotify={notify}/>;case'merger':return <PdfMerger onNotify={notify}/>;
-    case'splitter':return <PdfSplitter onNotify={notify}/>;case'editor':return <PdfEditor onNotify={notify}/>;
+    case'splitter':return <PdfSplitter onNotify={notify}/>;case'rotator':return <PdfRotator onNotify={notify}/>;case'editor':return <PdfEditor onNotify={notify}/>;
     case'img2pdf':return <ImageToPdf onNotify={notify}/>;case'ppt2pdf':return <PptToPdf onNotify={notify}/>;
     case'txt2pdf':return <TxtToPdf onNotify={notify}/>;case'docx2pdf':return <DocxToPdf onNotify={notify}/>;
     case'resizer':return <PageResizer onNotify={notify}/>;case'scanner':return <DocumentScanner onNotify={notify}/>;
