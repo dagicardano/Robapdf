@@ -45,21 +45,21 @@ export const PdfMerger: React.FC<ToolProps> = ({ onNotify }) => {
     setLoading(true);
     setProgress(0);
     try {
-      const addedFiles: LoadedPdfFile[] = [];
-      for (let i = 0; i < pdfFiles.length; i++) {
-        const f = pdfFiles[i];
-        const buffer = await f.arrayBuffer();
-        const { numPages, previews } = await renderPdfThumbnails(buffer, { scale: 0.3, maxPages: 1 });
-        addedFiles.push({
+      // File reads and first-page previews are independent: process them concurrently.
+      const buffers = await Promise.all(pdfFiles.map((file) => file.arrayBuffer()));
+      const addedFiles = await Promise.all(pdfFiles.map(async (f, i) => {
+        const buffer = buffers[i];
+        const { numPages, previews } = await renderPdfThumbnails(buffer, { scale: 0.24, maxPages: 1 });
+        setProgress(Math.round(((i + 1) / pdfFiles.length) * 100));
+        return {
           id: `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
           name: f.name,
           size: f.size,
           buffer,
           numPages,
           coverDataUrl: previews[0]?.dataUrl || '',
-        });
-        setProgress(Math.round(((i + 1) / pdfFiles.length) * 100));
-      }
+        };
+      }));
 
       setFiles((prev) => [...prev, ...addedFiles]);
       // Reset expanded pages if user adds new files so they stay in sync
@@ -123,10 +123,12 @@ export const PdfMerger: React.FC<ToolProps> = ({ onNotify }) => {
 
     try {
       const merged = await PDFDocument.create();
-      const docCache = new Map<string, PDFDocument>();
-      for (const f of files) {
-        docCache.set(f.id, await PDFDocument.load(f.buffer, { ignoreEncryption: true }));
-      }
+      // Parsing documents concurrently removes avoidable per-file waiting.
+      const loadedDocs = await Promise.all(files.map(async (f) => [
+        f.id,
+        await PDFDocument.load(f.buffer, { ignoreEncryption: true, throwOnInvalidObject: false }),
+      ] as const));
+      const docCache = new Map<string, PDFDocument>(loadedDocs);
 
       if (mode === 'files') {
         for (let i = 0; i < files.length; i++) {
@@ -146,7 +148,7 @@ export const PdfMerger: React.FC<ToolProps> = ({ onNotify }) => {
         }
       }
 
-      const bytes = await merged.save();
+      const bytes = await merged.save({ useObjectStreams: true });
       setProgress(100);
       downloadPdfBytes(bytes, outputName || 'merged-document.pdf');
       onNotify('success', `Merged ${merged.getPageCount()} total pages into ${outputName}.`);
