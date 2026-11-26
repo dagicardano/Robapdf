@@ -4,6 +4,7 @@ import {
   ChevronLeft,
   ChevronRight,
   Download,
+  FileText,
   Highlighter,
   Image as ImageIcon,
   MousePointer,
@@ -251,11 +252,11 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
       ctx.fillStyle = highlightColor;
       ctx.globalAlpha = tool === 'highlight' ? 0.35 : 0.9;
       ctx.lineWidth = 2;
-      if (tool === 'highlight') {
-        ctx.fillRect(previewRect.x * w, previewRect.y * h, previewRect.w * w, previewRect.h * h);
-      } else {
-        ctx.strokeRect(previewRect.x * w, previewRect.y * h, previewRect.w * w, previewRect.h * h);
-      }
+      if (tool === 'highlight') ctx.fillRect(previewRect.x*w,previewRect.y*h,previewRect.w*w,previewRect.h*h);
+      else if (tool === 'underline' || tool === 'strikeout') { ctx.beginPath(); const yy=(previewRect.y+(tool==='underline'?previewRect.h*.8:previewRect.h*.5))*h; ctx.moveTo(previewRect.x*w,yy); ctx.lineTo((previewRect.x+previewRect.w)*w,yy); ctx.stroke(); }
+      else if (tool === 'ellipse') { ctx.beginPath(); ctx.ellipse((previewRect.x+previewRect.w/2)*w,(previewRect.y+previewRect.h/2)*h,Math.max(1,previewRect.w*w/2),Math.max(1,previewRect.h*h/2),0,0,Math.PI*2); ctx.stroke(); }
+      else if (tool === 'arrow') { ctx.beginPath(); ctx.moveTo(previewRect.x*w,(previewRect.y+previewRect.h)*h); ctx.lineTo((previewRect.x+previewRect.w)*w,previewRect.y*h); ctx.stroke(); }
+      else ctx.strokeRect(previewRect.x*w,previewRect.y*h,previewRect.w*w,previewRect.h*h);
       ctx.restore();
     }
   }, [annotations, activePage, selectedAnnId, pageSizePt, previewRect, tool, highlightColor, color]);
