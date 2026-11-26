@@ -5,6 +5,16 @@ import {
   ChevronRight,
   Download,
   FileText,
+  Underline,
+  Strikethrough,
+  Circle,
+  ArrowUpRight,
+  StickyNote,
+  ZoomIn,
+  ZoomOut,
+  ChevronUp,
+  ChevronDown,
+  Copy,
   Highlighter,
   Image as ImageIcon,
   MousePointer,
@@ -32,7 +42,7 @@ interface ToolProps {
   onNotify: (type: 'success' | 'error' | 'info', msg: string) => void;
 }
 
-type EditorTool = 'select' | 'text' | 'rect' | 'highlight' | 'draw' | 'image' | 'signature';
+type EditorTool = 'select' | 'text' | 'rect' | 'highlight' | 'underline' | 'strikeout' | 'ellipse' | 'arrow' | 'note' | 'draw' | 'image' | 'signature';
 
 interface BaseAnn {
   id: string;
@@ -40,7 +50,7 @@ interface BaseAnn {
 }
 
 interface TextAnn extends BaseAnn {
-  kind: 'text';
+  kind: 'text' | 'note';
   xNorm: number;
   yNorm: number;
   text: string;
@@ -50,7 +60,7 @@ interface TextAnn extends BaseAnn {
 }
 
 interface RectAnn extends BaseAnn {
-  kind: 'rect' | 'highlight';
+  kind: 'rect' | 'highlight' | 'underline' | 'strikeout' | 'ellipse' | 'arrow';
   xNorm: number;
   yNorm: number;
   wNorm: number;
@@ -94,6 +104,9 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
   const [color, setColor] = useState('#2563eb');
   const [highlightColor, setHighlightColor] = useState('#fde047');
   const [fontSize, setFontSize] = useState(16);
+  const [zoom, setZoom] = useState(1);
+  const [showPageRail, setShowPageRail] = useState(true);
+  const [activeRibbon,setActiveRibbon]=useState<'home'|'annotate'|'organize'|'protect'>('home');
   const [textBold, setTextBold] = useState(false);
   const [textDraft, setTextDraft] = useState('Approved');
   const [strokeWidth, setStrokeWidth] = useState(3);
@@ -124,6 +137,10 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
   const [sigDrawing, setSigDrawing] = useState(false);
 
   const activePage = pages[activeIdx] || null;
+  const selectedAnnotation = annotations.find((a) => a.id === selectedAnnId) || null;
+  const duplicateCurrentPage = () => { if (!activePage) return; const clone: PageState = { ...activePage, id: `pg-copy-${Date.now()}` }; setPages(prev => [...prev.slice(0,activeIdx+1),clone,...prev.slice(activeIdx+1)]); setAnnotations(prev => [...prev,...prev.filter(a=>a.pageId===activePage.id).map(a=>({...a,id:`ann-copy-${Date.now()}-${Math.random()}`,pageId:clone.id}))]); setActiveIdx(activeIdx+1); };
+  const moveCurrentPage = (d:-1|1) => { const t=activeIdx+d; if(t<0||t>=pages.length)return; setPages(prev=>{const n=[...prev];[n[activeIdx],n[t]]=[n[t],n[activeIdx]];return n;});setActiveIdx(t); };
+  const updateSelected = (patch:Record<string,unknown>) => setAnnotations(prev=>prev.map(a=>a.id===selectedAnnId?({...a,...patch} as Annotation):a));
 
   const handleLoadPdf = async (files: File[]) => {
     const file = files[0];
@@ -163,7 +180,7 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
         buffer,
         activePage.origIndex + 1,
         bgCanvasRef.current!,
-        1.4,
+        1.4 * zoom,
         activePage.extraRotation
       );
       if (cancelled) return;
@@ -174,7 +191,7 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
     return () => {
       cancelled = true;
     };
-  }, [buffer, activePage]);
+  }, [buffer, activePage, zoom]);
 
   // Draw annotations onto overlay canvas
   const redrawOverlay = useCallback(() => {
@@ -192,16 +209,10 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
       const isSelected = ann.id === selectedAnnId;
       ctx.save();
 
-      if (ann.kind === 'rect' || ann.kind === 'highlight') {
+      if (ann.kind === 'rect' || ann.kind === 'highlight' || ann.kind === 'underline' || ann.kind === 'strikeout' || ann.kind === 'ellipse' || ann.kind === 'arrow') {
         ctx.globalAlpha = ann.opacity;
-        if (ann.kind === 'highlight') {
-          ctx.fillStyle = ann.color;
-          ctx.fillRect(ann.xNorm * w, ann.yNorm * h, ann.wNorm * w, ann.hNorm * h);
-        } else {
-          ctx.strokeStyle = ann.color;
-          ctx.lineWidth = 2.5;
-          ctx.strokeRect(ann.xNorm * w, ann.yNorm * h, ann.wNorm * w, ann.hNorm * h);
-        }
+        const x=ann.xNorm*w,y=ann.yNorm*h,rw=ann.wNorm*w,rh=ann.hNorm*h;ctx.strokeStyle=ann.color;ctx.fillStyle=ann.color;ctx.lineWidth=2.5;
+        if(ann.kind==='highlight'){ctx.globalAlpha=ann.opacity;ctx.fillRect(x,y,rw,rh);}else if(ann.kind==='underline'||ann.kind==='strikeout'){ctx.beginPath();const yy=y+(ann.kind==='underline'?rh*.82:rh*.5);ctx.moveTo(x,yy);ctx.lineTo(x+rw,yy);ctx.stroke();}else if(ann.kind==='ellipse'){ctx.beginPath();ctx.ellipse(x+rw/2,y+rh/2,Math.max(1,rw/2),Math.max(1,rh/2),0,0,Math.PI*2);ctx.stroke();}else if(ann.kind==='arrow'){ctx.beginPath();ctx.moveTo(x,y+rh);ctx.lineTo(x+rw,y);ctx.stroke();}else ctx.strokeRect(x,y,rw,rh);
       } else if (ann.kind === 'draw') {
         if (ann.points.length > 1) {
           ctx.strokeStyle = ann.color;
@@ -215,9 +226,10 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
           }
           ctx.stroke();
         }
-      } else if (ann.kind === 'text') {
+      } else if (ann.kind === 'text' || ann.kind === 'note') {
         const pxSize = ann.fontSizePt * (w / pageSizePt.width);
         ctx.font = `${ann.bold ? 'bold ' : ''}${pxSize}px Helvetica, Arial, sans-serif`;
+        if(ann.kind==='note'){ctx.fillStyle='#fff2b3';ctx.globalAlpha=.96;ctx.fillRect(ann.xNorm*w-5,ann.yNorm*h-5,Math.min(w-ann.xNorm*w,Math.max(150,ctx.measureText(ann.text).width+14)),pxSize+18);ctx.globalAlpha=1;}
         ctx.fillStyle = ann.color;
         ctx.textBaseline = 'top';
         ctx.fillText(ann.text, ann.xNorm * w, ann.yNorm * h);
@@ -280,7 +292,7 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
       if (a.kind === 'rect' || a.kind === 'highlight' || a.kind === 'image') {
         return nx >= a.xNorm && nx <= a.xNorm + a.wNorm && ny >= a.yNorm && ny <= a.yNorm + a.hNorm;
       }
-      if (a.kind === 'text') {
+      if (a.kind === 'text' || a.kind === 'note') {
         return nx >= a.xNorm - 0.02 && nx <= a.xNorm + 0.25 && ny >= a.yNorm - 0.02 && ny <= a.yNorm + 0.05;
       }
       return false;
@@ -308,17 +320,17 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
       return;
     }
 
-    if (tool === 'text') {
+    if (tool === 'text' || tool === 'note') {
       const content = textDraft.trim() || 'Annotation';
       const newAnn: TextAnn = {
         id: `ann-${Date.now()}`,
         pageId: activePage.id,
-        kind: 'text',
+        kind: tool === 'note' ? 'note' : 'text',
         xNorm: x,
         yNorm: y,
         text: content,
-        fontSizePt: fontSize,
-        color,
+        fontSizePt: tool === 'note' ? Math.min(fontSize,12) : fontSize,
+        color: tool === 'note' ? '#854d0e' : color,
         bold: textBold,
       };
       setAnnotations((p) => [...p, newAnn]);
@@ -367,7 +379,7 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
       return;
     }
 
-    if (tool === 'rect' || tool === 'highlight') {
+    if (tool === 'rect' || tool === 'highlight' || tool === 'underline' || tool === 'strikeout' || tool === 'ellipse' || tool === 'arrow') {
       dragState.current = { mode: 'rect', startX: x, startY: y };
       setPreviewRect({ x, y, w: 0, h: 0 });
     }
@@ -411,7 +423,7 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
       const newAnn: RectAnn = {
         id: `rect-${Date.now()}`,
         pageId: activePage.id,
-        kind: tool === 'highlight' ? 'highlight' : 'rect',
+        kind: tool === 'highlight' ? 'highlight' : tool === 'underline' ? 'underline' : tool === 'strikeout' ? 'strikeout' : tool === 'ellipse' ? 'ellipse' : tool === 'arrow' ? 'arrow' : 'rect',
         xNorm: previewRect.x,
         yNorm: previewRect.y,
         wNorm: previewRect.w,
@@ -493,9 +505,10 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
         const pageAnns = annotations.filter((a) => a.pageId === pgState.id);
 
         for (const ann of pageAnns) {
-          if (ann.kind === 'text') {
+          if (ann.kind === 'text' || ann.kind === 'note') {
             const pdfX = ann.xNorm * pw;
             const pdfY = ph - ann.yNorm * ph - ann.fontSizePt;
+            if(ann.kind==='note')page.drawRectangle({x:pdfX-5,y:pdfY-4,width:Math.min(pw-pdfX,Math.max(150,fontReg.widthOfTextAtSize(sanitizePdfText(ann.text),ann.fontSizePt)+14)),height:ann.fontSizePt+12,color:cssColorToRgb('#fff2b3'),opacity:.96});
             page.drawText(sanitizePdfText(ann.text), {
               x: pdfX,
               y: pdfY,
@@ -503,12 +516,12 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
               font: ann.bold ? fontBold : fontReg,
               color: cssColorToRgb(ann.color),
             });
-          } else if (ann.kind === 'rect' || ann.kind === 'highlight') {
+          } else if (ann.kind === 'rect' || ann.kind === 'highlight' || ann.kind === 'underline' || ann.kind === 'strikeout' || ann.kind === 'ellipse' || ann.kind === 'arrow') {
             const rx = ann.xNorm * pw;
             const rw = ann.wNorm * pw;
             const rh = ann.hNorm * ph;
             const ry = ph - ann.yNorm * ph - rh;
-            if (ann.kind === 'highlight') {
+            if(ann.kind==='underline'||ann.kind==='strikeout'){const yy=ry+(ann.kind==='underline'?.18:.52)*rh;page.drawLine({start:{x:rx,y:yy},end:{x:rx+rw,y:yy},thickness:Math.max(1.4,rh*.12),color:cssColorToRgb(ann.color)});}else if(ann.kind==='ellipse')page.drawEllipse({x:rx+rw/2,y:ry+rh/2,xScale:Math.max(1,rw/2),yScale:Math.max(1,rh/2),borderColor:cssColorToRgb(ann.color),borderWidth:2});else if(ann.kind==='arrow')page.drawLine({start:{x:rx,y:ry},end:{x:rx+rw,y:ry+rh},thickness:2,color:cssColorToRgb(ann.color)});else if (ann.kind === 'highlight') {
               page.drawRectangle({
                 x: rx,
                 y: ry,
@@ -581,6 +594,7 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
 
       {buffer && activePage && (
         <div className="rounded-xl border border-slate-200 bg-white dark:border-slate-800 dark:bg-slate-900">
+          <div className="flex items-center gap-1 border-b border-slate-200 bg-slate-100 px-3 pt-2 dark:border-slate-800 dark:bg-slate-950">{([['home','Home'],['annotate','Comment & Markup'],['organize','Organize Pages'],['protect','Review & Sign']] as const).map(([id,label])=><button key={id} type="button" onClick={()=>setActiveRibbon(id)} className={`rounded-t-lg px-3 py-2 text-[11px] font-bold ${activeRibbon===id?'bg-white text-blue-700 dark:bg-slate-900 dark:text-blue-300':'text-slate-500 hover:bg-white/70'}`}>{label}</button>)}</div>
           {/* Primary Editor Toolbar */}
           <div className="flex flex-wrap items-center gap-1.5 border-b border-slate-200 p-2.5 dark:border-slate-800">
             {(
@@ -588,8 +602,8 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
                 ['select', 'Select', MousePointer],
                 ['text', 'Text', Type],
                 ['rect', 'Rectangle', Square],
-                ['highlight', 'Highlight', Highlighter],
-                ['draw', 'Draw', Pen],
+                ['highlight', 'Highlight', Highlighter],['underline','Underline',Underline],['strikeout','Strikeout',Strikethrough],['ellipse','Ellipse',Circle],['arrow','Arrow',ArrowUpRight],['note','Sticky note',StickyNote],
+                ['draw', 'Freehand', Pen],
               ] as [EditorTool, string, React.ElementType][]
             ).map(([tId, label, Icon]) => (
               <button
@@ -643,7 +657,7 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
               <span>Signature</span>
             </button>
 
-            <div className="mx-1 h-5 w-px bg-slate-200 dark:bg-slate-700" />
+            <div className="mx-1 h-5 w-px bg-slate-200 dark:bg-slate-700" /><button type="button" onClick={()=>selectedAnnotation&&setAnnotations(p=>[...p,{...selectedAnnotation,id:`ann-${Date.now()}`,...('xNorm'in selectedAnnotation?{xNorm:Math.min(.9,selectedAnnotation.xNorm+.02),yNorm:Math.min(.9,selectedAnnotation.yNorm+.02)}:{})} as Annotation])} disabled={!selectedAnnotation} className="rounded-lg p-1.5 disabled:opacity-30" title="Duplicate object"><Copy className="h-4 w-4" /></button>
 
             {/* Contextual Tool Options */}
             {tool === 'text' && (
@@ -757,6 +771,7 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
           {/* Page Navigation Strip */}
           <div className="flex items-center justify-between border-b border-slate-200 bg-slate-50 px-4 py-2 text-xs dark:border-slate-800 dark:bg-slate-900/60">
             <div className="flex items-center gap-2">
+              <button type="button" onClick={()=>moveCurrentPage(-1)} disabled={activeIdx===0} title="Move page earlier" className="rounded border bg-white p-1 disabled:opacity-30"><ChevronUp className="h-4 w-4" /></button><button type="button" onClick={()=>moveCurrentPage(1)} disabled={activeIdx===pages.length-1} title="Move page later" className="rounded border bg-white p-1 disabled:opacity-30"><ChevronDown className="h-4 w-4" /></button><button type="button" onClick={duplicateCurrentPage} title="Duplicate page" className="rounded border bg-white p-1"><Copy className="h-4 w-4" /></button>
               <button
                 type="button"
                 disabled={activeIdx === 0}
@@ -800,8 +815,7 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
             </button>
           </div>
 
-          {/* Interactive Canvas Workspace */}
-          <div className="flex justify-center overflow-auto bg-slate-100 p-4 sm:p-6 dark:bg-slate-950/70">
+          <div className="flex min-h-[560px] items-stretch overflow-hidden bg-slate-100 dark:bg-slate-950/70">{showPageRail&&<aside className="w-[86px] shrink-0 overflow-y-auto border-r bg-slate-50 p-2 dark:border-slate-800 dark:bg-slate-900/80"><div className="mb-2 text-[9px] font-extrabold text-slate-500">PAGES · {pages.length}</div>{pages.map((pg,i)=><button key={pg.id} type="button" onClick={()=>setActiveIdx(i)} className={`mb-2 flex w-full flex-col items-center gap-1 rounded-lg border p-2 ${i===activeIdx?'border-blue-500 bg-blue-50 dark:bg-blue-950/40':'border-slate-200 bg-white dark:border-slate-700 dark:bg-slate-900'}`}><span className="flex h-14 w-11 items-center justify-center rounded border bg-white text-slate-400"><FileText className="h-5 w-5" /></span><span className="text-[9px] font-bold">{i+1}</span></button>)}</aside>}<div className="flex min-w-0 flex-1 flex-col items-center overflow-auto p-3 sm:p-6">
             <div className="relative inline-block shadow-md">
               <canvas ref={bgCanvasRef} className="block max-w-full rounded bg-white" />
               <canvas
@@ -813,8 +827,7 @@ export const PdfEditor: React.FC<ToolProps> = ({ onNotify }) => {
                   tool === 'select' ? 'cursor-default' : 'cursor-crosshair'
                 }`}
               />
-            </div>
-          </div>
+            </div><div className="mt-3 flex items-center gap-2 rounded-full border bg-white px-3 py-1.5 text-[10px] text-slate-500"><button type="button" onClick={()=>setZoom(z=>Math.max(.5,+(z-.1).toFixed(2)))}><ZoomOut className="h-3.5 w-3.5" /></button><span>{Math.round(zoom*100)}%</span><button type="button" onClick={()=>setZoom(z=>Math.min(2.5,+(z+.1).toFixed(2)))}><ZoomIn className="h-3.5 w-3.5" /></button><button type="button" onClick={()=>setZoom(1)}>Fit page</button><button type="button" onClick={()=>setShowPageRail(v=>!v)}>{showPageRail?'Hide pages':'Show pages'}</button></div></div><aside className="hidden w-56 shrink-0 border-l bg-white p-3 xl:block dark:border-slate-800 dark:bg-slate-900"><div className="mb-3 text-[10px] font-extrabold uppercase text-slate-500">Properties</div>{selectedAnnotation?<div className="space-y-3"><div className="rounded-lg bg-blue-50 p-2 text-[10px] font-semibold text-blue-700">Selected {selectedAnnotation.kind}</div>{(selectedAnnotation.kind==='text'||selectedAnnotation.kind==='note')&&<><label className="block text-[10px] text-slate-500">Text content<textarea value={selectedAnnotation.text} onChange={e=>updateSelected({text:e.target.value})} rows={4} className="mt-1 w-full rounded-lg border p-2 text-xs dark:border-slate-700 dark:bg-slate-800" /></label><label className="block text-[10px] text-slate-500">Font size<input type="number" min={6} max={96} value={selectedAnnotation.fontSizePt} onChange={e=>updateSelected({fontSizePt:Math.max(6,Math.min(96,Number(e.target.value)||12))})} className="mt-1 w-full rounded-lg border p-2 text-xs dark:border-slate-700 dark:bg-slate-800" /></label></>}{'color'in selectedAnnotation&&<label className="block text-[10px] text-slate-500">Color<input type="color" value={selectedAnnotation.color} onChange={e=>updateSelected({color:e.target.value})} className="mt-1 h-9 w-full" /></label>}<button type="button" onClick={()=>{setAnnotations(a=>a.filter(x=>x.id!==selectedAnnotation.id));setSelectedAnnId(null);}} className="w-full rounded-lg border border-red-200 px-3 py-2 text-[10px] font-bold text-red-600">Delete object</button></div>:<p className="text-[10px] leading-5 text-slate-500">Select a page object to edit its text, font size, color or position.</p>}</aside></div>
         </div>
       )}
 
